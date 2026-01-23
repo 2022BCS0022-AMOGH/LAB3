@@ -48,27 +48,17 @@ jobs:
         with:
           name: model-artifacts
 
-      - name: Read and compare metrics
+      - name: Read and compare metrics (HARD GATE)
         id: compare
         run: |
-          CURRENT_R2=$(python -c "import json; print(json.load(open('metrics.json'))['r2'])")
-          CURRENT_MSE=$(python -c "import json; print(json.load(open('metrics.json'))['mse'])")
-
-          echo Current_R2=$CURRENT_R2
-          echo Current_MSE=$CURRENT_MSE
-          echo Best_R2=${{ vars.BEST_R2 }}
-          echo Best_MSE=${{ vars.BEST_MSE }}
-
-          CHECK=$(python -c "print(float('$CURRENT_R2') > float('${{ vars.BEST_R2 }}') and float('$CURRENT_MSE') < float('${{ vars.BEST_MSE }}'))")
-
-          if [ \"$CHECK\" != \"True\" ]; then
-            echo \"2022BCS0022 ---- Metric did not improve\"
-            exit 0
-          fi
-
-          echo deploy=true >> $GITHUB_OUTPUT
-          echo current_r2=$CURRENT_R2 >> $GITHUB_OUTPUT
-          echo current_mse=$CURRENT_MSE >> $GITHUB_OUTPUT
+          python -c "import json,sys; \
+          m=json.load(open('metrics.json')); \
+          cr2=float(m['r2']); cmse=float(m['mse']); \
+          br2=float('${{ vars.BEST_R2 }}'); bmse=float('${{ vars.BEST_MSE }}'); \
+          print(f'Current R2: {cr2}'); print(f'Current MSE: {cmse}'); \
+          print(f'Best R2: {br2}'); print(f'Best MSE: {bmse}'); \
+          (cr2>br2 and cmse<bmse) or (print('2022BCS0022 ---- Metric did not improve') or sys.exit(1)); \
+          open('${{ github.output }}','a').write(f'deploy=true\ncurrent_r2={cr2}\ncurrent_mse={cmse}\n')"
 
       - name: Docker login
         if: steps.compare.outputs.deploy == 'true'
