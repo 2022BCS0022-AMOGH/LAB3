@@ -261,13 +261,3 @@ This pipeline ensures:
 * Full traceability via CI runs and Docker tags
 
 This is **production-grade CI/CD for ML inference**, not a demo script.
-
----
-
-If you want, I can also:
-
-* Tighten this README for grading rubrics
-* Add a diagram section
-* Add a short “Why metric gates matter” explanation
-
-Say the word.
