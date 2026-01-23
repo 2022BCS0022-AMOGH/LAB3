@@ -4,7 +4,7 @@ import pandas as pd
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
-from lightgbm import LGBMRegressor
+from xgboost import XGBRegressor
 
 # ------------------ LOAD DATA ------------------
 DATA_PATH = "dataset/winequality-red.csv"
@@ -19,14 +19,14 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, random_state=42
 )
 
-# ------------------ LIGHTGBM MODEL ------------------
-model = LGBMRegressor(
-    n_estimators=500,
+# ------------------ XGBOOST MODEL ------------------
+model = XGBRegressor(
+    n_estimators=300,
+    max_depth=5,
     learning_rate=0.05,
-    num_leaves=31,
-    max_depth=-1,
     subsample=0.8,
     colsample_bytree=0.8,
+    objective="reg:squarederror",
     random_state=42,
     n_jobs=-1
 )
@@ -52,6 +52,6 @@ with open("metrics.json", "w") as f:
     json.dump(metrics, f, indent=4)
 
 # ------------------ LOGS ------------------
-print("LIGHTGBM TRAINING RUN")
+print("XGBOOST TRAINING RUN")
 print(f"R2 Score: {r2}")
 print(f"MSE: {mse}")
