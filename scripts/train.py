@@ -1,6 +1,7 @@
 import json
 import joblib
 import pandas as pd
+import numpy as np
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
@@ -14,19 +15,23 @@ df = pd.read_csv(DATA_PATH, sep=";")
 X = df.drop("quality", axis=1)
 y = df["quality"]
 
+# ------------------ INTENTIONAL DEGRADATION ------------------
+# Shuffle labels to destroy feature–target relationship
+y_shuffled = y.sample(frac=1.0, random_state=999).reset_index(drop=True)
+X = X.reset_index(drop=True)
+
 # ------------------ TRAIN-TEST SPLIT ------------------
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
+    X, y_shuffled, test_size=0.3, random_state=42
 )
 
 # ------------------ MODEL ------------------
 model = LinearRegression()
 model.fit(X_train, y_train)
 
-# ------------------ PREDICTION ------------------
+# ------------------ EVALUATION ------------------
 y_pred = model.predict(X_test)
 
-# ------------------ METRICS ------------------
 mse = mean_squared_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
 
@@ -43,6 +48,6 @@ with open("metrics.json", "w") as f:
     json.dump(metrics, f, indent=4)
 
 # ------------------ LOGS ------------------
-print("Training complete")
+print("INTENTIONALLY DEGRADED TRAINING RUN")
 print(f"R2 Score: {r2}")
 print(f"MSE: {mse}")
