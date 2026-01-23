@@ -1,10 +1,9 @@
 import json
 import joblib
 import pandas as pd
-import numpy as np
 
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
+from sklearn.dummy import DummyRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 
 # ------------------ LOAD DATA ------------------
@@ -15,18 +14,14 @@ df = pd.read_csv(DATA_PATH, sep=";")
 X = df.drop("quality", axis=1)
 y = df["quality"]
 
-# ------------------ INTENTIONAL DEGRADATION ------------------
-# Shuffle labels to destroy feature–target relationship
-y_shuffled = y.sample(frac=1.0, random_state=999).reset_index(drop=True)
-X = X.reset_index(drop=True)
-
 # ------------------ TRAIN-TEST SPLIT ------------------
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y_shuffled, test_size=0.3, random_state=42
+    X, y, test_size=0.3, random_state=42
 )
 
-# ------------------ MODEL ------------------
-model = LinearRegression()
+# ------------------ DUMMY MODEL ------------------
+# Predicts the mean of training labels for every input
+model = DummyRegressor(strategy="mean")
 model.fit(X_train, y_train)
 
 # ------------------ EVALUATION ------------------
@@ -48,6 +43,6 @@ with open("metrics.json", "w") as f:
     json.dump(metrics, f, indent=4)
 
 # ------------------ LOGS ------------------
-print("INTENTIONALLY DEGRADED TRAINING RUN")
+print("DUMMY REGRESSOR RUN (EXPECTED TO FAIL DEPLOYMENT)")
 print(f"R2 Score: {r2}")
 print(f"MSE: {mse}")
