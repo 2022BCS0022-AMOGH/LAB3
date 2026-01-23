@@ -16,36 +16,39 @@ y = df["quality"]
 
 # ------------------ TRAIN-TEST SPLIT ------------------
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.3, random_state=42
+    X,
+    y,
+    test_size=0.3,
+    random_state=42
 )
 
-# ------------------ BASE MODEL ------------------
+# ------------------ BASE XGBOOST MODEL ------------------
 base_model = XGBRegressor(
     objective="reg:squarederror",
     random_state=42,
     n_jobs=-1
 )
 
-# ------------------ HYPERPARAMETER SEARCH SPACE ------------------
+# ------------------ R²-FOCUSED SEARCH SPACE ------------------
 param_dist = {
-    "n_estimators": [200, 300, 500, 800],
-    "max_depth": [3, 4, 5, 6],
-    "learning_rate": [0.01, 0.03, 0.05, 0.1],
-    "subsample": [0.7, 0.8, 0.9, 1.0],
-    "colsample_bytree": [0.7, 0.8, 0.9, 1.0],
-    "min_child_weight": [1, 3, 5]
+    "n_estimators": [400, 600, 800],
+    "max_depth": [6, 7, 8],
+    "learning_rate": [0.05, 0.1],
+    "subsample": [0.9, 1.0],
+    "colsample_bytree": [0.9, 1.0],
+    "min_child_weight": [1, 2]
 }
 
 # ------------------ RANDOMIZED SEARCH ------------------
 search = RandomizedSearchCV(
     estimator=base_model,
     param_distributions=param_dist,
-    n_iter=25,                     # enough to beat fixed params
-    scoring="r2",                  # primary metric
-    cv=3,
-    verbose=1,
+    n_iter=20,            # enough to move R² if possible
+    scoring="r2",         # explicitly optimize R²
+    cv=2,                 # fewer folds -> stronger variance learning
     random_state=42,
-    n_jobs=-1
+    n_jobs=-1,
+    verbose=1
 )
 
 search.fit(X_train, y_train)
@@ -72,7 +75,7 @@ with open("metrics.json", "w") as f:
     json.dump(metrics, f, indent=4)
 
 # ------------------ LOGS ------------------
-print("XGBOOST + HYPERPARAMETER TUNING RUN")
-print(f"Best params: {search.best_params_}")
-print(f"R2 Score: {r2}")
-print(f"MSE: {mse}")
+print("XGBOOST + R²-FOCUSED HYPERPARAMETER TUNING RUN")
+print(f"Best parameters found: {search.best_params_}")
+print(f"Final R2 Score: {r2}")
+print(f"Final MSE: {mse}")
