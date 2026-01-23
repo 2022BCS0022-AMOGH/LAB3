@@ -51,15 +51,15 @@ jobs:
       - name: Read and compare metrics
         id: compare
         run: |
-          CURRENT_F1=$(python -c "import json; print(json.load(open('metrics.json'))['f1'])")
+          CURRENT_R2=$(python -c "import json; print(json.load(open('metrics.json'))['r2'])")
           CURRENT_MSE=$(python -c "import json; print(json.load(open('metrics.json'))['mse'])")
 
-          echo Current_F1=$CURRENT_F1
+          echo Current_R2=$CURRENT_R2
           echo Current_MSE=$CURRENT_MSE
-          echo Best_F1=${{ vars.BEST_F1 }}
+          echo Best_R2=${{ vars.BEST_R2 }}
           echo Best_MSE=${{ vars.BEST_MSE }}
 
-          CHECK=$(python -c "print(float('$CURRENT_F1') > float('${{ vars.BEST_F1 }}') and float('$CURRENT_MSE') < float('${{ vars.BEST_MSE }}'))")
+          CHECK=$(python -c "print(float('$CURRENT_R2') > float('${{ vars.BEST_R2 }}') and float('$CURRENT_MSE') < float('${{ vars.BEST_MSE }}'))")
 
           if [ \"$CHECK\" != \"True\" ]; then
             echo \"2022BCS0022 ---- Metric did not improve\"
@@ -67,7 +67,7 @@ jobs:
           fi
 
           echo deploy=true >> $GITHUB_OUTPUT
-          echo current_f1=$CURRENT_F1 >> $GITHUB_OUTPUT
+          echo current_r2=$CURRENT_R2 >> $GITHUB_OUTPUT
           echo current_mse=$CURRENT_MSE >> $GITHUB_OUTPUT
 
       - name: Docker login
@@ -90,5 +90,5 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          gh variable set BEST_F1 --body "$CURRENT_F1"
-          gh variable set BEST_MSE --body "$CURRENT_MSE"
+          gh variable set BEST_R2 --body "${{ steps.compare.outputs.current_r2 }}"
+          gh variable set BEST_MSE --body "${{ steps.compare.outputs.current_mse }}"
